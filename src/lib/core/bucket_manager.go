@@ -96,6 +96,14 @@ func (this *BucketManager) Exif(image_url string) (response *http.Response, err 
 // 删除文件（delete）
 // https://wcs.chinanetcenter.com/document/API/ResourceManage/delete
 func (this *BucketManager) Delete(bucket string, key string) (response *http.Response, err error) {
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+	if 0 == len(key) {
+		err = errors.New("key is empty")
+		return
+	}
 	url := this.config.GetManageUrlPrefix() + "/delete/" + utility.UrlSafeEncodePair(bucket, key)
 	request, err := utility.CreatePostRequest(url)
 	if nil != err {
@@ -108,6 +116,15 @@ func (this *BucketManager) Delete(bucket string, key string) (response *http.Res
 // 获取文件信息（stat）
 // https://wcs.chinanetcenter.com/document/API/ResourceManage/stat
 func (this *BucketManager) Stat(bucket string, key string) (response *http.Response, err error) {
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+	if 0 == len(key) {
+		err = errors.New("key is empty")
+		return
+	}
+
 	url := this.config.GetManageUrlPrefix() + "/stat/" + utility.UrlSafeEncodePair(bucket, key)
 	request, err := utility.CreateGetRequest(url)
 	if nil != err {

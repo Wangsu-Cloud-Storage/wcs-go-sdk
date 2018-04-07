@@ -24,6 +24,13 @@ type FetchInfo struct {
 	decompression string
 }
 
+type CopyInfo struct {
+	resource string
+	bucket   string
+	key      string
+	prefix   string
+}
+
 func NewFileManager(auth *utility.Auth, config *Config, client *http.Client) (fm *FileManager) {
 	if nil == auth {
 		panic("auth is nil")
@@ -102,6 +109,41 @@ func (this *FileManager) fetch(fops string, notify_url string, force int, separa
 
 // 复制资源（fmgr/copy）
 // https://wcs.chinanetcenter.com/document/API/Fmgr/copy
+func (this *FileManager) Copy(resource string, bucket string, key string, prefix string, notify_url string, separate int) (response *http.Response, err error) {
+	if 0 == len(resource) {
+		err = errors.New("resource is empty")
+		return
+	}
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+
+	fops := "resource/" + utility.UrlSafeEncodeString(resource) + "/bucket/" + utility.UrlSafeEncodeString(bucket)
+	if len(key) > 0 {
+		fops += "/key/" + utility.UrlSafeEncodeString(key)
+	}
+	if len(prefix) > 0 {
+		fops += "/prefix/" + utility.UrlSafeEncodeString(prefix)
+	}
+
+	return this.copy(fops, notify_url, separate)
+}
+
+func (this *FileManager) CopyMultiple(copy_info []CopyInfo, notify_url string, separate int) (response *http.Response, err error) {
+	var fops string
+	for _, v := range copy_info {
+		fops += ";" + "resource/" + utility.UrlSafeEncodeString(v.resource) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
+		if len(v.key) > 0 {
+			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
+		}
+		if len(v.prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		}
+	}
+	return this.copy(fops[1:], notify_url, separate)
+}
+
 func (this *FileManager) copy(fops string, notify_url string, separate int) (response *http.Response, err error) {
 	query := make(url.Values)
 	query.Add("fops", fops)
