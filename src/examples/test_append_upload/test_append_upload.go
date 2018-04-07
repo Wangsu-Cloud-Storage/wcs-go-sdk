@@ -14,7 +14,7 @@ import (
 func main() {
 	auth := test_common.EnvAuthEx("WcsLibAkSkAppend")
 	//config := core.NewDefaultConfig()
-	config := core.NewConfig(false, "r0monitor.up35.v1.wcsapi.com", "r0monitor.up35.v1.wcsapi.com")
+	config := core.NewConfig(false, "<your upload domain>", "<your manager domain>")
 
 	su := core.NewAppendUpload(auth, config, nil)
 
