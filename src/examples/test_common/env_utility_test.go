@@ -23,3 +23,8 @@ func TestEnvAuth(t *testing.T) {
 	auth := EnvAuth()
 	t.Log("AccessKey =", auth.AccessKey)
 }
+
+func TestEnvConfig(t *testing.T) {
+	config := EnvConfig()
+	t.Log("UseHttps =", config.UseHttps)
+}

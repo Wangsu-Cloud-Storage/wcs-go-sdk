@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"../../lib/core"
 	"../../lib/utility"
 )
 
@@ -21,6 +22,22 @@ func EnvAuthEx(key string) (auth *utility.Auth) {
 		panic(`Please set EnvironmentVariable "` + key + `" to "AccessKey,SecretKey".`)
 	}
 	return utility.NewAuth(aksk[0], aksk[1])
+}
+
+func EnvConfig() (config *core.Config) {
+	v := getEnvValues("WcsLibConfig")
+	if len(v) < 3 {
+		panic("Please set EnvironmentVariable \"WcsLibConfig\" to \"UseHttps,UploadHost,ManageHost\".")
+	}
+	return core.NewConfig("true" == v[0], v[1], v[2])
+}
+
+func EnvConfigEx(key string) (config *core.Config) {
+	v := getEnvValues(key)
+	if len(v) < 3 {
+		panic(`Please set EnvironmentVariable "` + key + `" to "UseHttps,UploadHost,ManageHost".`)
+	}
+	return core.NewConfig("true" == v[0], v[1], v[2])
 }
 
 func getEnvValues(variable string) (value []string) {

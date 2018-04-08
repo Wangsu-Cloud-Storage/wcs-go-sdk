@@ -13,8 +13,7 @@ import (
 
 func main() {
 	auth := test_common.EnvAuthEx("WcsLibAkSkAppend")
-	//config := core.NewDefaultConfig()
-	config := core.NewConfig(false, "<your upload domain>", "<your manager domain>")
+	config := test_common.EnvConfigEx("WcsLibConfigAppend")
 
 	su := core.NewAppendUpload(auth, config, nil)
 
