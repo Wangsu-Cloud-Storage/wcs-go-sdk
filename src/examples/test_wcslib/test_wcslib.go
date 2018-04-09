@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"time"
 
 	"../../lib/core"
 	"../../lib/utility"
@@ -12,10 +13,11 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
+		fmt.Println("Document: https://wcs.chinanetcenter.com/document/API/")
 		fmt.Println("Available operation (NOT all implemented):")
-		fmt.Println("    FileUpload/SimpleUpload")
-		fmt.Println("    FileUpload/SliceUpload")
-		fmt.Println("    FileUpload/AppendUpload")
+		fmt.Println("    FileUpload/Upload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
+		fmt.Println("    FileUpload/SliceUpload SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
+		fmt.Println("    FileUpload/AppendUpload SecretKey UseHttps UploadHost ManageHost Bucket Key Position Deadline:Day LocalFilename")
 		fmt.Println("    ResourceManage/listbucket")
 		fmt.Println("    ResourceManage/bucketstat")
 		fmt.Println("    ResourceManage/download")
@@ -45,12 +47,12 @@ func main() {
 		return
 	}
 	switch os.Args[1] {
-	case "FileUpload/SimpleUpload":
-		Exit(-2, "Not implemented")
+	case "FileUpload/Upload":
+		SimpleUpload()
 	case "FileUpload/SliceUpload":
-		Exit(-2, "Not implemented")
+		SliceUpload()
 	case "FileUpload/AppendUpload":
-		Exit(-2, "Not implemented")
+		AppendUpload()
 
 	case "ResourceManage/listbucket":
 		Exit(-2, "Not implemented")
@@ -149,6 +151,101 @@ func GetArgv(index int, required bool) string {
 		Exit(-1, fmt.Sprintf("Argument[%d] is required!", index))
 	}
 	return ""
+}
+
+func SimpleUpload() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+
+	days_remain_to_delete := GetArgvInt(9, true)
+	localfilename := GetArgv(10, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	su := core.NewSimpleUpload(auth, config, nil)
+	put_extra := core.NewPutExtra(days_remain_to_delete)
+
+	deadline := time.Now().Add(time.Second*3600).Unix() * 1000
+	put_policy := "{\"scope\": \"" + bucket + "\",\"deadline\": \"" + strconv.FormatInt(deadline, 10) + "\"}"
+	response, err := su.UploadFile(localfilename, put_policy, key, put_extra)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("UploadFile() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func SliceUpload() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+
+	days_remain_to_delete := GetArgvInt(9, true)
+	localfilename := GetArgv(10, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	su := core.NewSliceUpload(auth, config, nil)
+	put_extra := core.NewPutExtra(days_remain_to_delete)
+
+	deadline := time.Now().Add(time.Second*3600).Unix() * 1000
+	put_policy := "{\"scope\": \"" + bucket + "\",\"deadline\": \"" + strconv.FormatInt(deadline, 10) + "\"}"
+	response, err := su.UploadFile(localfilename, put_policy, key, put_extra)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("UploadFile() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func AppendUpload() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+
+	position := GetArgvInt(9, true)
+
+	days_remain_to_delete := GetArgvInt(10, true)
+	localfilename := GetArgv(11, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	au := core.NewAppendUpload(auth, config, nil)
+	put_extra := core.NewPutExtra(days_remain_to_delete)
+
+	deadline := time.Now().Add(time.Second*3600).Unix() * 1000
+	put_policy := "{\"scope\": \"" + bucket + "\",\"deadline\": \"" + strconv.FormatInt(deadline, 10) + "\"}"
+	response, err := au.AppendFile(localfilename, position, put_policy, key, put_extra)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("AppendFile() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
 }
 
 func ResourceManageDelete() {

@@ -2,8 +2,11 @@ package core
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -135,4 +138,140 @@ func (this *SliceUpload) MakeFile(size int64, key string, contexts []string, upl
 		}
 	}
 	return this.httpManager.DoWithToken(request, upload_token)
+}
+
+func (this *SliceUpload) UploadFile(local_filename string, put_policy string, key string, put_extra *PutExtra) (response *http.Response, err error) {
+	if 0 == len(local_filename) {
+		err = errors.New("local_filename is empty")
+		return
+	}
+	if 0 == len(put_policy) {
+		err = errors.New("put_policy is empty")
+		return
+	}
+	filename := key
+	if 0 == len(filename) {
+		filename = "goupload.tmp"
+	}
+
+	f, err := os.Open(local_filename)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return
+	}
+
+	var block_size int64
+	// 第一个分片不宜太大，因为可能遇到错误，上传太大是白费流量和时间！
+	var first_chunk_size int64
+
+	if fi.Size() < 1024 {
+		block_size = fi.Size()
+		first_chunk_size = fi.Size()
+	} else {
+		if fi.Size() < BlockSize {
+			block_size = fi.Size()
+		} else {
+			block_size = BlockSize
+		}
+		first_chunk_size = 1024
+	}
+
+	first_chunk := make([]byte, first_chunk_size)
+	n, err := f.Read(first_chunk)
+	if nil != err {
+		return
+	}
+	if first_chunk_size != int64(n) {
+		err = errors.New("Read size < request size")
+		return
+	}
+
+	upload_token := this.auth.CreateUploadToken(put_policy)
+	response, err = this.MakeBlock(block_size, 0, first_chunk, upload_token, key)
+	if nil != err {
+		return
+	}
+	if http.StatusOK != response.StatusCode {
+		return
+	}
+	body, _ := ioutil.ReadAll(response.Body)
+	var result SliceUploadResult
+	err = json.Unmarshal(body, &result)
+	if nil != err {
+		return
+	}
+
+	block_count := BlockCount(fi.Size())
+	contexts := make([]string, block_count)
+	contexts[0] = result.Context
+
+	// 上传第 1 个 block 剩下的数据
+	if block_size > first_chunk_size {
+		first_block_left_size := block_size - first_chunk_size
+		left_chunk := make([]byte, first_block_left_size)
+		n, err = f.Read(left_chunk)
+		if nil != err {
+			return
+		}
+		if first_block_left_size != int64(n) {
+			err = errors.New("Read size < request size")
+			return
+		}
+		response, err = this.Bput(contexts[0], first_chunk_size, left_chunk, upload_token, key)
+		if nil != err {
+			return
+		}
+		if http.StatusOK != response.StatusCode {
+			return
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		var result SliceUploadResult
+		err = json.Unmarshal(body, &result)
+		if nil != err {
+			return
+		}
+		contexts[0] = result.Context
+
+		// 上传后续 block，每次都是一整块上传
+		for block_index := int64(1); block_index < block_count; block_index++ {
+			pos := block_size * block_index
+			left_size := fi.Size() - pos
+			var chunk_size int64
+			if left_size > block_size {
+				chunk_size = block_size
+			} else {
+				chunk_size = left_size
+			}
+			block := make([]byte, chunk_size)
+			n, err = f.Read(block)
+			if nil != err {
+				return
+			}
+			if chunk_size != int64(n) {
+				err = errors.New("Read size < request size")
+				return
+			}
+			response, err = this.MakeBlock(chunk_size, block_index, block, upload_token, key)
+			if nil != err {
+				return
+			}
+			if http.StatusOK != response.StatusCode {
+				return
+			}
+			body, _ := ioutil.ReadAll(response.Body)
+			err = json.Unmarshal(body, &result)
+			if nil != err {
+				return
+			}
+
+			contexts[block_index] = result.Context
+		}
+	}
+
+	response, err = this.MakeFile(fi.Size(), key, contexts, upload_token, nil)
+	return
 }

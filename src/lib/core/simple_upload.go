@@ -49,9 +49,6 @@ func (this *SimpleUpload) UploadData(data []byte, put_policy string, key string,
 		err = errors.New("put_policy is empty")
 		return
 	}
-	if nil == put_extra {
-		put_extra = NewPutExtra()
-	}
 	filename := key
 	if 0 == len(filename) {
 		filename = "goupload.tmp"
@@ -86,9 +83,6 @@ func (this *SimpleUpload) UploadFile(local_filename string, put_policy string, k
 	if 0 == len(put_policy) {
 		err = errors.New("put_policy is empty")
 		return
-	}
-	if nil == put_extra {
-		put_extra = NewPutExtra()
 	}
 	filename := key
 	if 0 == len(filename) {
@@ -130,7 +124,7 @@ func writeMultipart(writer *multipart.Writer, upload_token string, key string, p
 		return
 	}
 
-	if nil != put_extra.Params {
+	if nil != put_extra && nil != put_extra.Params {
 		for k, v := range put_extra.Params {
 			if strings.HasPrefix(k, "x:") && len(v) > 0 {
 				err = writer.WriteField(k, v)
@@ -147,13 +141,13 @@ func writeMultipart(writer *multipart.Writer, upload_token string, key string, p
 		}
 	}
 
-	if len(put_extra.MimeType) > 0 {
+	if nil != put_extra && len(put_extra.MimeType) > 0 {
 		if err = writer.WriteField("mimeType", put_extra.MimeType); nil != err {
 			return
 		}
 	}
 
-	if -1 != put_extra.Deadline {
+	if nil != put_extra && -1 != put_extra.Deadline {
 		if err = writer.WriteField("deadline", strconv.Itoa(put_extra.Deadline)); nil != err {
 			return
 		}

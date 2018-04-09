@@ -8,6 +8,10 @@ type PutExtra struct {
 	Deadline int               // 文件保存期限。超过保存天数文件自动删除,单位：天。例如：1、2、3……注：0表示尽快删除，上传文件时建议不配置为0
 }
 
-func NewPutExtra() (put_extra *PutExtra) {
+func NewDefaultPutExtra() (put_extra *PutExtra) {
 	return &PutExtra{make(map[string]string, 0), "", -1}
+}
+
+func NewPutExtra(deadline int) (put_extra *PutExtra) {
+	return &PutExtra{make(map[string]string, 0), "", deadline}
 }

@@ -46,9 +46,6 @@ func (this *AppendUpload) AppendData(data []byte, position int, put_policy strin
 		err = errors.New("put_policy is empty")
 		return
 	}
-	if nil == put_extra {
-		put_extra = NewPutExtra()
-	}
 	filename := key
 	if 0 == len(filename) {
 		filename = "goappend.tmp"
@@ -83,9 +80,6 @@ func (this *AppendUpload) AppendFile(local_filename string, position int, put_po
 	if 0 == len(put_policy) {
 		err = errors.New("put_policy is empty")
 		return
-	}
-	if nil == put_extra {
-		put_extra = NewPutExtra()
 	}
 	filename := key
 	if 0 == len(filename) {
