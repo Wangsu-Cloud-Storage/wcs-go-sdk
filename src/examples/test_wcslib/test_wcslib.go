@@ -16,8 +16,8 @@ func main() {
 		fmt.Println("Document: https://wcs.chinanetcenter.com/document/API/")
 		fmt.Println("Available operation (NOT all implemented):")
 		fmt.Println("    FileUpload/Upload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
-		fmt.Println("    FileUpload/SliceUpload SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
-		fmt.Println("    FileUpload/AppendUpload SecretKey UseHttps UploadHost ManageHost Bucket Key Position Deadline:Day LocalFilename")
+		fmt.Println("    FileUpload/SliceUpload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
+		fmt.Println("    FileUpload/AppendUpload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Position Deadline:Day LocalFilename")
 		fmt.Println("    ResourceManage/listbucket")
 		fmt.Println("    ResourceManage/bucketstat")
 		fmt.Println("    ResourceManage/download")
@@ -34,14 +34,17 @@ func main() {
 		fmt.Println("    ResourceManage/decompression")
 		fmt.Println("    ResourceManage/setdeadline")
 		fmt.Println("    ResourceManage/PersistentStatus UseHttps UploadHost ManageHost PersistentId")
-		fmt.Println("    Fmgr/fetch fetch_url bucket [key] [prefix] [md5] [decompression] [notify_url] [force] [separate]")
-		fmt.Println("    Fmgr/copy resource bucket [key] [prefix] [notify_url] [separate]")
+		fmt.Println("    Fmgr/fetch AccessKey SecretKey UseHttps UploadHost ManageHost fetch_url bucket [key] [prefix] [md5] [decompression] [notify_url] [force] [separate]")
+		fmt.Println("    Fmgr/copy AccessKey SecretKey UseHttps UploadHost ManageHost resource bucket [key] [prefix] [notify_url] [separate]")
 		fmt.Println("    Fmgr/move")
 		fmt.Println("    Fmgr/delete")
 		fmt.Println("    Fmgr/deletePrefix")
 		fmt.Println("    Fmgr/deletem3u8")
-		fmt.Println("    Fmgr/status PersistentId")
+		fmt.Println("    Fmgr/status UseHttps UploadHost ManageHost PersistentId")
 		fmt.Println("    Video-op/fops AccessKey SecretKey UseHttps UploadHost ManageHost QueryString")
+
+		fmt.Println("    UrlSafeEncode string ...")
+		fmt.Println("    UrlSafeEncodePair key value")
 
 		Exit(-1, "No parameter specified!")
 		return
@@ -103,6 +106,10 @@ func main() {
 		FmgrStatus()
 	case "Video-op/fops":
 		FOps()
+	case "UrlSafeEncode":
+		UrlSafeEncode()
+	case "UrlSafeEncodePair":
+		UrlSafeEncodePair()
 	default:
 		Exit(-1, "Unknown operation: "+os.Args[1])
 	}
@@ -483,4 +490,18 @@ func FOps() {
 	body, _ := ioutil.ReadAll(response.Body)
 	Exit(response.StatusCode, string(body))
 	return
+}
+
+func UrlSafeEncode() {
+	for i := 2; i < len(os.Args); i++ {
+		fmt.Println(os.Args[i], "=>", utility.UrlSafeEncodeString(os.Args[i]))
+	}
+}
+
+func UrlSafeEncodePair() {
+	if len(os.Args) < 4 {
+		fmt.Println("Not enough arguments")
+	} else {
+		fmt.Println(os.Args[2], os.Args[3], "=>", utility.UrlSafeEncodePair(os.Args[2], os.Args[3]))
+	}
 }
