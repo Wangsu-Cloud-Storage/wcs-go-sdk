@@ -18,8 +18,8 @@ func main() {
 		fmt.Println("    FileUpload/Upload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
 		fmt.Println("    FileUpload/SliceUpload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline:Day LocalFilename")
 		fmt.Println("    FileUpload/AppendUpload AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Position Deadline:Day LocalFilename")
-		fmt.Println("    ResourceManage/listbucket")
-		fmt.Println("    ResourceManage/bucketstat")
+		fmt.Println("    ResourceManage/listbucket AccessKey SecretKey UseHttps UploadHost ManageHost")
+		fmt.Println("    ResourceManage/bucketstat AccessKey SecretKey UseHttps UploadHost ManageHost BucketNames StartDate EndDate")
 		fmt.Println("    ResourceManage/download")
 		fmt.Println("    ResourceManage/delete AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key")
 		fmt.Println("    ResourceManage/stat AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key")
@@ -27,21 +27,24 @@ func main() {
 		fmt.Println("    ResourceManage/exif URL")
 		fmt.Println("    ResourceManage/avinfo URL")
 		fmt.Println("    ResourceManage/avinfo2 URL")
-		fmt.Println("    ResourceManage/list")
-		fmt.Println("    ResourceManage/prefetch")
-		fmt.Println("    ResourceManage/move")
-		fmt.Println("    ResourceManage/copy")
+		fmt.Println("    ResourceManage/list AccessKey SecretKey UseHttps UploadHost ManageHost Bucket [Limit:int] [Prefix] [Mode:int] [Marker]")
+		fmt.Println("    ResourceManage/prefetch AccessKey SecretKey UseHttps UploadHost ManageHost BucketFileKeys")
+		fmt.Println("    ResourceManage/move AccessKey SecretKey UseHttps UploadHost ManageHost Source Destination")
+		fmt.Println("    ResourceManage/copy AccessKey SecretKey UseHttps UploadHost ManageHost Source Destination")
 		fmt.Println("    ResourceManage/decompression")
-		fmt.Println("    ResourceManage/setdeadline")
+		fmt.Println("    ResourceManage/setdeadline AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key Deadline [Relevance]")
 		fmt.Println("    ResourceManage/PersistentStatus UseHttps UploadHost ManageHost PersistentId")
-		fmt.Println("    Fmgr/fetch AccessKey SecretKey UseHttps UploadHost ManageHost fetch_url bucket [key] [prefix] [md5] [decompression] [notify_url] [force] [separate]")
-		fmt.Println("    Fmgr/copy AccessKey SecretKey UseHttps UploadHost ManageHost resource bucket [key] [prefix] [notify_url] [separate]")
-		fmt.Println("    Fmgr/move")
-		fmt.Println("    Fmgr/delete")
-		fmt.Println("    Fmgr/deletePrefix")
-		fmt.Println("    Fmgr/deletem3u8")
+		fmt.Println("    Fmgr/fetch AccessKey SecretKey UseHttps UploadHost ManageHost FetchUrl Bucket [Key] [Prefix] [Md5] [Decompression] [NotifyURL] [Force] [Separate]")
+		fmt.Println("    Fmgr/copy AccessKey SecretKey UseHttps UploadHost ManageHost Resource Bucket [Key] [Prefix] [NotifyURL] [Separate]")
+		fmt.Println("    Fmgr/move AccessKey SecretKey UseHttps UploadHost ManageHost Resource Bucket [Key] [Prefix] [NotifyURL] [Separate]")
+		fmt.Println("    Fmgr/delete AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key [NotifyURL] [Separate]")
+		fmt.Println("    Fmgr/deletePrefix AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Prefix [Output] [NotifyURL] [Separate]")
+		fmt.Println("    Fmgr/deletem3u8 AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key [Deletets] [NotifyURL] [Separate]")
+		fmt.Println("    Fmgr/setdeadline AccessKey SecretKey UseHttps UploadHost ManageHost Bucket [Prefix] Deadline [NotifyURL] [Separate]")
 		fmt.Println("    Fmgr/status UseHttps UploadHost ManageHost PersistentId")
 		fmt.Println("    Video-op/fops AccessKey SecretKey UseHttps UploadHost ManageHost QueryString")
+		fmt.Println("    Image-op/imageDetect AccessKey SecretKey UseHttps UploadHost ManageHost Image Type Bucket")
+		fmt.Println("    Image-op/imagePersistentOp AccessKey SecretKey UseHttps UploadHost ManageHost Bucket Key FOps [NotifyURL] [Force] [Separate]")
 
 		fmt.Println("    UrlSafeEncode string ...")
 		fmt.Println("    UrlSafeEncodePair key value")
@@ -58,9 +61,11 @@ func main() {
 		AppendUpload()
 
 	case "ResourceManage/listbucket":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageListBucket()
 	case "ResourceManage/bucketstat":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageBucketStat()
 	case "ResourceManage/download":
 		Exit(-2, "Not implemented")
 	case "ResourceManage/delete":
@@ -76,17 +81,22 @@ func main() {
 	case "ResourceManage/avinfo2":
 		ResourceManageAvinfo2()
 	case "ResourceManage/list":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageList()
 	case "ResourceManage/prefetch":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManagePrefetch()
 	case "ResourceManage/move":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageMove()
 	case "ResourceManage/copy":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageCopy()
 	case "ResourceManage/decompression":
 		Exit(-2, "Not implemented")
 	case "ResourceManage/setdeadline":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageSetDeadline()
 	case "ResourceManage/PersistentStatus":
 		ResourceManagePersistentStatus()
 
@@ -95,13 +105,19 @@ func main() {
 	case "Fmgr/copy":
 		FmgrCopy()
 	case "Fmgr/move":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		FmgrMove()
 	case "Fmgr/delete":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		FmgrDelete()
 	case "Fmgr/deletePrefix":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		FmgrDeletePrefix()
 	case "Fmgr/deletem3u8":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		FmgrDeleteM3u8()
+	case "Fmgr/setdeadline":
+		FmgrSetDeadline()
 	case "Fmgr/status":
 		FmgrStatus()
 	case "Video-op/fops":
@@ -110,6 +126,10 @@ func main() {
 		UrlSafeEncode()
 	case "UrlSafeEncodePair":
 		UrlSafeEncodePair()
+	case "Image-op/imageDetect":
+		ImageOpImageDetect()
+	case "Image-op/imagePersistentOp":
+		ImageOpImagePersistentOp()
 	default:
 		Exit(-1, "Unknown operation: "+os.Args[1])
 	}
@@ -504,4 +524,365 @@ func UrlSafeEncodePair() {
 	} else {
 		fmt.Println(os.Args[2], os.Args[3], "=>", utility.UrlSafeEncodePair(os.Args[2], os.Args[3]))
 	}
+}
+
+// 二期需求
+func ResourceManageListBucket() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.ListBucket()
+	if nil != err {
+		Exit(-3, fmt.Sprintf("ListBucket() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManageBucketStat() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket_names := GetArgv(7, true)
+	startdate := GetArgv(8, true)
+	enddate := GetArgv(9, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.BucketStat(bucket_names, startdate, enddate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("BucketStat() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManageList() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	limit := GetArgvInt(8, false)
+	prefix := GetArgv(9, false)
+	mode := GetArgvInt(10, false)
+	marker := GetArgv(11, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.List(bucket, limit, prefix, mode, marker)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("List() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManagePrefetch() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket_file_keys := GetArgv(7, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.Prefetch(bucket_file_keys)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("Prefetch() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManageMove() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	src := GetArgv(7, true)
+	dst := GetArgv(8, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.Move(src, dst)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("Move() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManageCopy() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	src := GetArgv(7, true)
+	dst := GetArgv(8, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.Copy(src, dst)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("Copy() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManageSetDeadline() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket_names := GetArgv(7, true)
+	key := GetArgv(8, true)
+	deadline := GetArgvInt(9, true)
+	relevance := GetArgvInt(10, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+	response, err := bm.SetDeadline(bucket_names, key, deadline, relevance)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("SetDeadline() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ImageOpImageDetect() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	image := GetArgv(7, true)
+	_type := GetArgv(8, true)
+	bucket := GetArgv(9, true)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	image_op := core.NewImageOp(auth, config, nil)
+	response, err := image_op.ImageDetect(image, _type, bucket)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("ImageDetect() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ImageOpImagePersistentOp() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+	fops := GetArgv(9, true)
+
+	notify_url := GetArgv(10, false)
+	force := GetArgvInt(11, false)
+	separate := GetArgvInt(12, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	image_op := core.NewImageOp(auth, config, nil)
+	response, err := image_op.ImagePersistentOp(bucket, key, fops, notify_url, force, separate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("ImagePersistentOp() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func FmgrMove() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	resource := GetArgv(7, true)
+	bucket := GetArgv(8, true)
+	key := GetArgv(9, false)
+	prefix := GetArgv(10, false)
+	notify_url := GetArgv(11, false)
+	separate := GetArgvInt(12, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	fm := core.NewFileManager(auth, config, nil)
+	response, err := fm.Move(resource, bucket, key, prefix, notify_url, separate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("Move() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func FmgrDelete() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+	notify_url := GetArgv(9, false)
+	separate := GetArgvInt(10, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	fm := core.NewFileManager(auth, config, nil)
+	response, err := fm.Delete(bucket, key, notify_url, separate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("Delete() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func FmgrDeletePrefix() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	prefix := GetArgv(8, true)
+	output := GetArgv(9, false)
+	notify_url := GetArgv(10, false)
+	separate := GetArgvInt(11, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	fm := core.NewFileManager(auth, config, nil)
+	response, err := fm.DeletePrefix(bucket, prefix, output, notify_url, separate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("DeletePrefix() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func FmgrDeleteM3u8() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+	deletets := GetArgvInt(9, false)
+	notify_url := GetArgv(10, false)
+	separate := GetArgvInt(11, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	fm := core.NewFileManager(auth, config, nil)
+	response, err := fm.DeleteM3u8(bucket, key, deletets, notify_url, separate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("DeleteM3u8() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func FmgrSetDeadline() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	prefix := GetArgv(8, false)
+	deadline := GetArgvInt(9, true)
+	notify_url := GetArgv(10, false)
+	separate := GetArgvInt(11, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	fm := core.NewFileManager(auth, config, nil)
+	response, err := fm.SetDeadline(bucket, prefix, deadline, notify_url, separate)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("SetDeadline() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
 }

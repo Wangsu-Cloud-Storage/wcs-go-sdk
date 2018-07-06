@@ -31,6 +31,36 @@ type CopyInfo struct {
 	prefix   string
 }
 
+type MoveInfo struct {
+	resource string
+	bucket   string
+	key      string
+	prefix   string
+}
+
+type DeleteInfo struct {
+	bucket string
+	key    string
+}
+
+type DeletePrefixInfo struct {
+	bucket string
+	prefix string
+	output string
+}
+
+type DeleteM3u8Info struct {
+	bucket   string
+	key      string
+	deletets int
+}
+
+type SetDeadlineInfo struct {
+	bucket   string
+	prefix   string
+	deadline int
+}
+
 func NewFileManager(auth *utility.Auth, config *Config, client *http.Client) (fm *FileManager) {
 	if nil == auth {
 		panic("auth is nil")
@@ -43,6 +73,7 @@ func NewFileManager(auth *utility.Auth, config *Config, client *http.Client) (fm
 
 // 抓取资源（fmgr/fetch）
 // https://wcs.chinanetcenter.com/document/API/Fmgr/fetch
+// Copy resource to bucket:key
 func (this *FileManager) Fetch(fetch_url string, bucket string, key string, prefix string, md5 string, decompression string,
 	notify_url string, force int, separate int) (response *http.Response, err error) {
 	if 0 == len(fetch_url) {
@@ -75,7 +106,7 @@ func (this *FileManager) FetchMultiple(fetch_info []FetchInfo,
 	notify_url string, force int, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range fetch_info {
-		fops += ";" + "fetchURL/" + utility.UrlSafeEncodeString(v.fetch_url) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
+		fops += ";fetchURL/" + utility.UrlSafeEncodeString(v.fetch_url) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
 		if len(v.key) > 0 {
 			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
 		}
@@ -133,7 +164,15 @@ func (this *FileManager) Copy(resource string, bucket string, key string, prefix
 func (this *FileManager) CopyMultiple(copy_info []CopyInfo, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range copy_info {
-		fops += ";" + "resource/" + utility.UrlSafeEncodeString(v.resource) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
+		if 0 == len(v.resource) {
+			err = errors.New("resource is empty")
+			return
+		}
+		if 0 == len(v.bucket) {
+			err = errors.New("bucket is empty")
+			return
+		}
+		fops += ";resource/" + utility.UrlSafeEncodeString(v.resource) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
 		if len(v.key) > 0 {
 			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
 		}
@@ -171,4 +210,265 @@ func (this *FileManager) Status(persistent_id string) (response *http.Response, 
 	// 不需要 Token
 	response, err = this.httpManager.DoWithToken(request, "")
 	return
+}
+
+// 移动资源
+// https://wcs.chinanetcenter.com/document/API/Fmgr/move
+// Move resource to bucket:key
+func (this *FileManager) Move(resource string, bucket string, key string, prefix string, notify_url string, separate int) (response *http.Response, err error) {
+	if 0 == len(resource) {
+		err = errors.New("resource is empty")
+		return
+	}
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+
+	fops := "resource/" + utility.UrlSafeEncodeString(resource) + "/bucket/" + utility.UrlSafeEncodeString(bucket)
+	if len(key) > 0 {
+		fops += "/key/" + utility.UrlSafeEncodeString(key)
+	}
+	if len(prefix) > 0 {
+		fops += "/prefix/" + utility.UrlSafeEncodeString(prefix)
+	}
+
+	return this.move(fops, notify_url, separate)
+}
+
+func (this *FileManager) MoveMultiple(move_info []MoveInfo, notify_url string, separate int) (response *http.Response, err error) {
+	var fops string
+	for _, v := range move_info {
+		if 0 == len(v.resource) {
+			err = errors.New("resource is empty")
+			return
+		}
+		if 0 == len(v.bucket) {
+			err = errors.New("bucket is empty")
+			return
+		}
+		fops += ";resource/" + utility.UrlSafeEncodeString(v.resource) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
+		if len(v.key) > 0 {
+			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
+		}
+		if len(v.prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		}
+	}
+	return this.move(fops[1:], notify_url, separate)
+}
+
+func (this *FileManager) move(fops string, notify_url string, separate int) (response *http.Response, err error) {
+	query := make(url.Values)
+	query.Add("fops", fops)
+	if len(notify_url) > 0 {
+		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+	}
+	if 0 == separate || 1 == separate {
+		query.Add("separate", strconv.Itoa(separate))
+	}
+	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/fmgr/move", utility.MakeQuery(query))
+}
+
+// 删除资源
+// https://wcs.chinanetcenter.com/document/API/Fmgr/delete
+// Delete bucket:key
+func (this *FileManager) Delete(bucket string, key string, notify_url string, separate int) (response *http.Response, err error) {
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+	if 0 == len(key) {
+		err = errors.New("key is empty")
+		return
+	}
+
+	fops := "bucket/" + utility.UrlSafeEncodeString(bucket) + "/key/" + utility.UrlSafeEncodeString(key)
+
+	return this.delete(fops, notify_url, separate)
+}
+
+func (this *FileManager) DeleteMultiple(delete_info []DeleteInfo, notify_url string, separate int) (response *http.Response, err error) {
+	var fops string
+	for _, v := range delete_info {
+		if 0 == len(v.bucket) {
+			err = errors.New("bucket is empty")
+			return
+		}
+		if 0 == len(v.key) {
+			err = errors.New("key is empty")
+			return
+		}
+		fops += ";" + "bucket/" + utility.UrlSafeEncodeString(v.bucket) + "/key/" + utility.UrlSafeEncodeString(v.key)
+	}
+	return this.delete(fops[1:], notify_url, separate)
+}
+
+func (this *FileManager) delete(fops string, notify_url string, separate int) (response *http.Response, err error) {
+	query := make(url.Values)
+	query.Add("fops", fops)
+	if len(notify_url) > 0 {
+		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+	}
+	if 0 == separate || 1 == separate {
+		query.Add("separate", strconv.Itoa(separate))
+	}
+	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/fmgr/delete", utility.MakeQuery(query))
+}
+
+// 按前缀删除资源
+// https://wcs.chinanetcenter.com/document/API/Fmgr/deletePrefix
+func (this *FileManager) DeletePrefix(bucket string, prefix string, output string, notify_url string, separate int) (response *http.Response, err error) {
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+	if 0 == len(prefix) {
+		err = errors.New("prefix is empty")
+		return
+	}
+
+	fops := "bucket/" + utility.UrlSafeEncodeString(bucket) +
+		"/prefix/" + utility.UrlSafeEncodeString(prefix)
+	if len(output) > 0 {
+		fops += "/output/" + utility.UrlSafeEncodeString(output)
+	}
+
+	return this.deletePrefix(fops, notify_url, separate)
+}
+
+func (this *FileManager) DeletePrefixMultiple(delete_prefix_info []DeletePrefixInfo, notify_url string, separate int) (response *http.Response, err error) {
+	var fops string
+	for _, v := range delete_prefix_info {
+		if 0 == len(v.bucket) {
+			err = errors.New("bucket is empty")
+			return
+		}
+		if 0 == len(v.prefix) {
+			err = errors.New("prefix is empty")
+			return
+		}
+		fops += ";bucket/" + utility.UrlSafeEncodeString(v.bucket) + "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		if len(v.output) > 0 {
+			fops += "/output/" + utility.UrlSafeEncodeString(v.output)
+		}
+	}
+	return this.deletePrefix(fops[1:], notify_url, separate)
+}
+
+func (this *FileManager) deletePrefix(fops string, notify_url string, separate int) (response *http.Response, err error) {
+	query := make(url.Values)
+	query.Add("fops", fops)
+	if len(notify_url) > 0 {
+		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+	}
+	if 0 == separate || 1 == separate {
+		query.Add("separate", strconv.Itoa(separate))
+	}
+	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/fmgr/deletePrefix", utility.MakeQuery(query))
+}
+
+// 删除m3u8文件
+// https://wcs.chinanetcenter.com/document/API/Fmgr/deletem3u8
+func (this *FileManager) DeleteM3u8(bucket string, key string, deletets int, notify_url string, separate int) (response *http.Response, err error) {
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+	if 0 == len(key) {
+		err = errors.New("key is empty")
+		return
+	}
+
+	fops := "bucket/" + utility.UrlSafeEncodeString(bucket) +
+		"/key/" + utility.UrlSafeEncodeString(key)
+	if deletets == 0 || deletets == 1 {
+		fops += "/deletets/" + strconv.Itoa(deletets)
+	}
+
+	return this.deleteM3u8(fops, notify_url, separate)
+}
+
+func (this *FileManager) DeleteM3u8Multiple(delete_m3u8_info []DeleteM3u8Info, notify_url string, separate int) (response *http.Response, err error) {
+	var fops string
+	for _, v := range delete_m3u8_info {
+		if 0 == len(v.bucket) {
+			err = errors.New("bucket is empty")
+			return
+		}
+		if 0 == len(v.key) {
+			err = errors.New("key is empty")
+			return
+		}
+		fops += ";bucket/" + utility.UrlSafeEncodeString(v.bucket) + "/key/" + utility.UrlSafeEncodeString(v.key)
+		if v.deletets == 0 || v.deletets == 1 {
+			fops += "/deletets/" + strconv.Itoa(v.deletets)
+		}
+	}
+	return this.deleteM3u8(fops[1:], notify_url, separate)
+}
+
+func (this *FileManager) deleteM3u8(fops string, notify_url string, separate int) (response *http.Response, err error) {
+	query := make(url.Values)
+	query.Add("fops", fops)
+	if len(notify_url) > 0 {
+		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+	}
+	if 0 == separate || 1 == separate {
+		query.Add("separate", strconv.Itoa(separate))
+	}
+	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/fmgr/deletem3u8", utility.MakeQuery(query))
+}
+
+// 批量修改文件保存期限
+// https://wcs.chinanetcenter.com/document/API/Fmgr/setdeadline
+func (this *FileManager) SetDeadline(bucket string, prefix string, deadline int, notify_url string, separate int) (response *http.Response, err error) {
+	if 0 == len(bucket) {
+		err = errors.New("bucket is empty")
+		return
+	}
+
+	if deadline < -1 {
+		err = errors.New("deadline is invalid")
+		return
+	}
+
+	fops := "bucket/" + utility.UrlSafeEncodeString(bucket)
+	if len(prefix) > 0 {
+		fops += "/prefix/" + utility.UrlSafeEncodeString(prefix)
+	}
+	fops += "/deadline/" + strconv.Itoa(deadline)
+	return this.setDeadline(fops, notify_url, separate)
+}
+
+func (this *FileManager) SetDeadlineMultiple(set_deadline_info []SetDeadlineInfo, notify_url string, separate int) (response *http.Response, err error) {
+	var fops string
+	for _, v := range set_deadline_info {
+		if 0 == len(v.bucket) {
+			err = errors.New("bucket is empty")
+			return
+		}
+		if v.deadline < -1 {
+			err = errors.New("deadline is invalid")
+			return
+		}
+		fops += ";bucket/" + utility.UrlSafeEncodeString(v.bucket)
+		if len(v.prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		}
+		fops += "/deadline/" + strconv.Itoa(v.deadline)
+	}
+	return this.setDeadline(fops[1:], notify_url, separate)
+}
+
+func (this *FileManager) setDeadline(fops string, notify_url string, separate int) (response *http.Response, err error) {
+	query := make(url.Values)
+	query.Add("fops", fops)
+	if len(notify_url) > 0 {
+		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+	}
+	if 0 == separate || 1 == separate {
+		query.Add("separate", strconv.Itoa(separate))
+	}
+	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/fmgr/setdeadline", utility.MakeQuery(query))
 }

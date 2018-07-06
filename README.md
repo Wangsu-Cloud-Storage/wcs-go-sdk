@@ -10,6 +10,10 @@ wcs-go-sdk 是较为原始的封装，lib 部分没有引入 JSON 库，如果�
 
 首次发布
 
+## 安装说明
+
+复制 /src/lib 到您的代码目录下。
+
 ## 初始化
 
 在使用 SDK 之前，您需要获得一对有效的 AccessKey 和 SecretKey 签名授权。
