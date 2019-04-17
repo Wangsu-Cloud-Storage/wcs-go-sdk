@@ -76,11 +76,10 @@ func (this *Auth) SignRequest(reqest *http.Request) (token string, err error) {
 func (this *Auth) encodeSign(data []byte) (sign string) {
 	hm := hmac.New(sha1.New, this.SecretKey)
 	hm.Write(data)
-	//return UrlSafeEncode(hm.Sum(nil))	// Qiniu
 	sum := hm.Sum(nil)
 	hexString := make([]byte, hex.EncodedLen(len(sum)))
 	hex.Encode(hexString, sum)
-	return UrlSafeEncode(hexString) // Wangsu 的算法比 Qiniu 多了（没必要的）一步
+	return UrlSafeEncode(hexString)
 }
 
 // Signature }
