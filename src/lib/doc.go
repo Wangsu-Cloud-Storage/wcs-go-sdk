@@ -1,6 +1,6 @@
 package lib
 
 import (
-	_ "./core"
-	_ "./utility"
+	_ "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
+	_ "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
