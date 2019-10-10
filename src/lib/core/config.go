@@ -1,7 +1,7 @@
 package core
 
 import (
-	"../utility"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 type Config struct {

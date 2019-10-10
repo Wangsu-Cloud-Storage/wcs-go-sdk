@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
-	"../utility"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 type BucketManager struct {

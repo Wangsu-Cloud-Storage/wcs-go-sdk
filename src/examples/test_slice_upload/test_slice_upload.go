@@ -6,10 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-
-	"../../lib/core"
-	"../../lib/utility"
-	"../test_common"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/examples/test_common"
 )
 
 func main() {

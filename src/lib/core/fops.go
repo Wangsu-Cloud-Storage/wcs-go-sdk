@@ -4,8 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-
-	"../utility"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 // https://wcs.chinanetcenter.com/document/API/Video-op

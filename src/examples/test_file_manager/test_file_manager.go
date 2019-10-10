@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/examples/test_common"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
 	"io/ioutil"
 	"net/http"
-
-	"../../lib/core"
-	"../test_common"
 )
 
 func main() {

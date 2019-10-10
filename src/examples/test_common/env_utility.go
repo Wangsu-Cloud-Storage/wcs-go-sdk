@@ -3,9 +3,8 @@ package test_common
 import (
 	"os"
 	"strings"
-
-	"../../lib/core"
-	"../../lib/utility"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 func EnvAuth() (auth *utility.Auth) {

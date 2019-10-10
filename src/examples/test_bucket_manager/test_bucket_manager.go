@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"../../lib/core"
-	"../test_common"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/examples/test_common"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
 )
 
 func main() {

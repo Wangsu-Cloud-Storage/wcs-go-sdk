@@ -9,8 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"../utility"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 // 普通上传
