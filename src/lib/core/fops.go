@@ -2,9 +2,9 @@ package core
 
 import (
 	"errors"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 	"net/http"
 	"strings"
-	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 // https://wcs.chinanetcenter.com/document/API/Video-op

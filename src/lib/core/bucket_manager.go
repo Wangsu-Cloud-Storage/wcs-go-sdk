@@ -2,10 +2,10 @@ package core
 
 import (
 	"errors"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 	"net/http"
 	"net/url"
 	"strconv"
-	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 type BucketManager struct {

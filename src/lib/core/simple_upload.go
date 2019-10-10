@@ -3,13 +3,13 @@ package core
 import (
 	"bytes"
 	"errors"
+	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 
 // 普通上传
