@@ -11,7 +11,8 @@ wcs-go-sdk 是较为原始的封装，lib 部分没有引入 JSON 库，如果�
 
 ## 安装说明
 
-复制 /src/lib 到您的代码目录下。
+1. 使用go module安装：`go get -u github.com/Wangsu-Cloud-Storage/wcs-go-sdk`
+2. 使用源码安装：`复制 /src/lib 到您的代码目录下`
 
 
 ## 初始化
