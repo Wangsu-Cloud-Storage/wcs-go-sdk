@@ -233,22 +233,22 @@ func (this *BucketManager) List(bucket string, limit int, prefix string, mode in
 		err = errors.New("bucket is empty")
 		return
 	}
-	query := make(url.Values)
-	query.Add("bucket", bucket)
+	var queryStr string
+	queryStr += "bucket="+bucket+"&"
 	if limit >= 1 && limit <= 1000 {
-		query.Add("limit", strconv.Itoa(limit))
+		queryStr += "limit="+strconv.Itoa(limit)+"&"
 	}
 	if len(prefix) > 0 {
-		query.Add("prefix", utility.UrlSafeEncodeString(prefix))
+		queryStr += "prefix="+utility.UrlSafeEncodeString(prefix)+"&"
 	}
 	if 0 == mode || 1 == mode {
-		query.Add("mode", strconv.Itoa(mode))
+		queryStr += "mode="+strconv.Itoa(mode)+"&"
 	}
 	if len(marker) > 0 {
-		query.Add("marker", marker)
+		queryStr += "marker="+marker
 	}
 
-	url := this.config.GetManageUrlPrefix() + "/list?" + query.Encode()
+	url := this.config.GetManageUrlPrefix() + "/list?" + queryStr
 	request, err := utility.CreateGetRequest(url)
 	if nil != err {
 		return
