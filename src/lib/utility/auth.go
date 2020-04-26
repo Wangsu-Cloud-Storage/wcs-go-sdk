@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+        "net/url"
 )
 
 // https://wcs.chinanetcenter.com/document/API/Token/AccessToken
@@ -48,9 +49,9 @@ func (this *Auth) SignRequest(reqest *http.Request) (token string, err error) {
 	var data string
 	u := reqest.URL
 	if len(u.RawQuery) > 0 {
-		data = u.Path + "?" + u.RawQuery + "\n"
+		data = url.QueryUnescape(u.Path) + "?" + u.RawQuery + "\n"
 	} else {
-		data = u.Path + "\n"
+		data = url.QueryUnescape(u.Path) + "\n"
 	}
 
 	var buffer []byte
