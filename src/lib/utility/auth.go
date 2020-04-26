@@ -48,7 +48,7 @@ func (this *Auth) SignWithData(data []byte) (token string) {
 func (this *Auth) SignRequest(reqest *http.Request) (token string, err error) {
 	var data string
 	u := reqest.URL
-	path, _ :+ url.QueryUnescape(u.Path)
+	path, _ := url.QueryUnescape(u.Path)
 	if len(u.RawQuery) > 0 {
 		data = path + "?" + u.RawQuery + "\n"
 	} else {
