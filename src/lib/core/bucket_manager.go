@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type BucketManager struct {
@@ -228,27 +229,33 @@ func (this *BucketManager) BucketStat(bucket_names string, startdate string, end
 
 // 列举资源(list)
 // https://wcs.chinanetcenter.com/document/API/ResourceManage/list
-func (this *BucketManager) List(bucket string, limit int, prefix string, mode int, marker string) (response *http.Response, err error) {
+func (this *BucketManager) List(bucket string, limit int, prefix string, mode int, marker string, startTime string, endTime string) (response *http.Response, err error) {
 	if 0 == len(bucket) {
 		err = errors.New("bucket is empty")
 		return
 	}
-	var queryStr string
-	queryStr += "bucket="+bucket+"&"
+	var query = []string{}
+	query = append(query, "bucket="+bucket)
 	if limit >= 1 && limit <= 1000 {
-		queryStr += "limit="+strconv.Itoa(limit)+"&"
+		query = append(query, "limit="+strconv.Itoa(limit))
 	}
 	if len(prefix) > 0 {
-		queryStr += "prefix="+utility.UrlSafeEncodeString(prefix)+"&"
+		query = append(query, "prefix="+utility.UrlSafeEncodeString(prefix))
 	}
 	if 0 == mode || 1 == mode {
-		queryStr += "mode="+strconv.Itoa(mode)+"&"
+		query = append(query, "mode="+strconv.Itoa(mode))
 	}
 	if len(marker) > 0 {
-		queryStr += "marker="+marker
+		query = append(query, "marker="+marker)
+	}
+	if len(startTime) > 0 {
+		query = append(query, "startTime="+startTime)
+	}
+	if len(endTime) > 0 {
+		query = append(query, "endTime="+endTime)
 	}
 
-	url := this.config.GetManageUrlPrefix() + "/list?" + queryStr
+	url := this.config.GetManageUrlPrefix() + "/list?" + strings.Join(query, "&")
 	request, err := utility.CreateGetRequest(url)
 	if nil != err {
 		return
