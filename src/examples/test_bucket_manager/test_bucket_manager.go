@@ -54,7 +54,6 @@ func main() {
 		}
 	}
 	
-
 	{
 		// 列举资源
 		response, err := bm.List("bucketName", limit, "prefix", mode, "marker")
@@ -71,5 +70,5 @@ func main() {
 		}
 	}
 	
-	// 其它文件管理功能参考：https://github.com/Wangsu-Cloud-Storage/wcs-go-sdk/blob/master/src/lib/core/bucket_manager.go
+	// 其它文件管理功能参考：wcs-go-sdk/src/lib/core/bucket_manager.go
 }
