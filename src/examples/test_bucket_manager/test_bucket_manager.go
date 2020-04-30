@@ -15,7 +15,8 @@ func main() {
 
 	bm := core.NewBucketManager(auth, config, nil)
 	{
-		response, err := bm.AvInfo("http://images.w.wcsapi.biz.matocloud.com/1.mp4")
+		// 查看音视频元数据
+		response, err := bm.AvInfo("keyUrl")
 		if nil != err {
 			fmt.Println("AvInfo() failed:", err)
 			return
@@ -38,6 +39,7 @@ func main() {
 	}
 
 	{
+		// 查看音文件数据
 		response, err := bm.Stat("umu618-docs", "各种录音程序.7z")
 		if nil != err {
 			fmt.Println("Stat() failed:", err)
@@ -51,4 +53,23 @@ func main() {
 			fmt.Println(string(body))
 		}
 	}
+	
+
+	{
+		// 列举资源
+		response, err := bm.List("bucketName", limit, "prefix", mode, "marker")
+		if nil != err {
+			fmt.Println("List() failed:", err)
+			return
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		if http.StatusOK == response.StatusCode {
+			fmt.Println(string(body))
+		} else {
+			fmt.Println("Failed, StatusCode =", response.StatusCode)
+			fmt.Println(string(body))
+		}
+	}
+	
+	// 其它文件管理功能参考：https://github.com/Wangsu-Cloud-Storage/wcs-go-sdk/blob/master/src/lib/core/bucket_manager.go
 }
