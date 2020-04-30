@@ -56,7 +56,7 @@ func main() {
 	
 	{
 		// 列举资源
-		response, err := bm.List("bucketName", limit, "prefix", mode, "marker")
+		response, err := bm.List("bucketName", limit, "prefix", mode, "marker", "startTime", "endTime")
 		if nil != err {
 			fmt.Println("List() failed:", err)
 			return
