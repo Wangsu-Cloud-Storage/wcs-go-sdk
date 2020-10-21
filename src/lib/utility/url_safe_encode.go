@@ -15,6 +15,10 @@ func UrlSafeEncodeString(str string) string {
 	return base64.URLEncoding.EncodeToString([]byte(str))
 }
 
+func StdEncodeString(str string) string {
+	return base64.StdEncoding.EncodeToString([]byte(str))
+}
+
 func UrlSafeEncodePair(bucket string, key string) string {
 	return base64.URLEncoding.EncodeToString([]byte(bucket + ":" + key))
 }

@@ -47,11 +47,9 @@ func (this *ImageOp) ImageDetect(image string, _type string, bucket string) (res
 		return
 	}
 
-	query := make(url.Values)
-	query.Add("image", utility.UrlSafeEncodeString(image))
-	query.Add("type", _type)
-	query.Add("bucket", bucket)
-	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/imageDetect", query.Encode())
+	imageEncoded := utility.StdEncodeString(image)
+	query := "bucket=" + bucket + "&image=" + imageEncoded + "&type=" + _type
+	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/imageDetect", query)
 }
 
 // 图片持久化处理
