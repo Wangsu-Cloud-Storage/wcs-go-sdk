@@ -47,7 +47,7 @@ func (this *ImageOp) ImageDetect(image string, _type string, bucket string) (res
 		return
 	}
 
-	imageEncoded := utility.StdEncodeString(image)
+	imageEncoded := utility.UrlSafeEncodeString(image)
 	query := "bucket=" + bucket + "&image=" + imageEncoded + "&type=" + _type
 	return InnerFOps(this.auth, this.httpManager.GetClient(), this.config.GetManageUrlPrefix()+"/imageDetect", query)
 }
