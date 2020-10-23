@@ -15,49 +15,49 @@ type FileManager struct {
 }
 
 type FetchInfo struct {
-	fetch_url     string
-	bucket        string
-	key           string
-	prefix        string
-	md5           string
-	decompression string
+	Fetch_url     string
+	Bucket        string
+	Key           string
+	Prefix        string
+	Md5           string
+	Decompression string
 }
 
 type CopyInfo struct {
-	resource string
-	bucket   string
-	key      string
-	prefix   string
+	Resource string
+	Bucket   string
+	Key      string
+	Prefix   string
 }
 
 type MoveInfo struct {
-	resource string
-	bucket   string
-	key      string
-	prefix   string
+	Resource string
+	Bucket   string
+	Key      string
+	Prefix   string
 }
 
 type DeleteInfo struct {
-	bucket string
-	key    string
+	Bucket string
+	Key    string
 }
 
 type DeletePrefixInfo struct {
-	bucket string
-	prefix string
-	output string
+	Bucket string
+	Prefix string
+	Output string
 }
 
 type DeleteM3u8Info struct {
-	bucket   string
-	key      string
-	deletets int
+	Bucket   string
+	Key      string
+	Deletets int
 }
 
 type SetDeadlineInfo struct {
-	bucket   string
-	prefix   string
-	deadline int
+	Bucket   string
+	Prefix   string
+	Deadline int
 }
 
 func NewFileManager(auth *utility.Auth, config *Config, client *http.Client) (fm *FileManager) {
@@ -105,18 +105,18 @@ func (this *FileManager) FetchMultiple(fetch_info []FetchInfo,
 	notify_url string, force int, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range fetch_info {
-		fops += ";fetchURL/" + utility.UrlSafeEncodeString(v.fetch_url) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
-		if len(v.key) > 0 {
-			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
+		fops += ";fetchURL/" + utility.UrlSafeEncodeString(v.Fetch_url) + "/bucket/" + utility.UrlSafeEncodeString(v.Bucket)
+		if len(v.Key) > 0 {
+			fops += "/key/" + utility.UrlSafeEncodeString(v.Key)
 		}
-		if len(v.prefix) > 0 {
-			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		if len(v.Prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.Prefix)
 		}
-		if len(v.md5) > 0 {
-			fops += "/md5/" + v.md5
+		if len(v.Md5) > 0 {
+			fops += "/md5/" + v.Md5
 		}
-		if len(v.decompression) > 0 {
-			fops += "/decompression/" + v.decompression
+		if len(v.Decompression) > 0 {
+			fops += "/decompression/" + v.Decompression
 		}
 	}
 	return this.fetch(fops[1:], notify_url, force, separate)
@@ -163,20 +163,20 @@ func (this *FileManager) Copy(resource string, bucket string, key string, prefix
 func (this *FileManager) CopyMultiple(copy_info []CopyInfo, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range copy_info {
-		if 0 == len(v.resource) {
+		if 0 == len(v.Resource) {
 			err = errors.New("resource is empty")
 			return
 		}
-		if 0 == len(v.bucket) {
+		if 0 == len(v.Bucket) {
 			err = errors.New("bucket is empty")
 			return
 		}
-		fops += ";resource/" + utility.UrlSafeEncodeString(v.resource) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
-		if len(v.key) > 0 {
-			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
+		fops += ";resource/" + utility.UrlSafeEncodeString(v.Resource) + "/bucket/" + utility.UrlSafeEncodeString(v.Bucket)
+		if len(v.Key) > 0 {
+			fops += "/key/" + utility.UrlSafeEncodeString(v.Key)
 		}
-		if len(v.prefix) > 0 {
-			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		if len(v.Prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.Prefix)
 		}
 	}
 	return this.copy(fops[1:], notify_url, separate)
@@ -238,20 +238,20 @@ func (this *FileManager) Move(resource string, bucket string, key string, prefix
 func (this *FileManager) MoveMultiple(move_info []MoveInfo, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range move_info {
-		if 0 == len(v.resource) {
+		if 0 == len(v.Resource) {
 			err = errors.New("resource is empty")
 			return
 		}
-		if 0 == len(v.bucket) {
+		if 0 == len(v.Bucket) {
 			err = errors.New("bucket is empty")
 			return
 		}
-		fops += ";resource/" + utility.UrlSafeEncodeString(v.resource) + "/bucket/" + utility.UrlSafeEncodeString(v.bucket)
-		if len(v.key) > 0 {
-			fops += "/key/" + utility.UrlSafeEncodeString(v.key)
+		fops += ";resource/" + utility.UrlSafeEncodeString(v.Resource) + "/bucket/" + utility.UrlSafeEncodeString(v.Bucket)
+		if len(v.Key) > 0 {
+			fops += "/key/" + utility.UrlSafeEncodeString(v.Key)
 		}
-		if len(v.prefix) > 0 {
-			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		if len(v.Prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.Prefix)
 		}
 	}
 	return this.move(fops[1:], notify_url, separate)
@@ -290,15 +290,15 @@ func (this *FileManager) Delete(bucket string, key string, notify_url string, se
 func (this *FileManager) DeleteMultiple(delete_info []DeleteInfo, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range delete_info {
-		if 0 == len(v.bucket) {
+		if 0 == len(v.Bucket) {
 			err = errors.New("bucket is empty")
 			return
 		}
-		if 0 == len(v.key) {
+		if 0 == len(v.Key) {
 			err = errors.New("key is empty")
 			return
 		}
-		fops += ";" + "bucket/" + utility.UrlSafeEncodeString(v.bucket) + "/key/" + utility.UrlSafeEncodeString(v.key)
+		fops += ";" + "bucket/" + utility.UrlSafeEncodeString(v.Bucket) + "/key/" + utility.UrlSafeEncodeString(v.Key)
 	}
 	return this.delete(fops[1:], notify_url, separate)
 }
@@ -339,17 +339,17 @@ func (this *FileManager) DeletePrefix(bucket string, prefix string, output strin
 func (this *FileManager) DeletePrefixMultiple(delete_prefix_info []DeletePrefixInfo, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range delete_prefix_info {
-		if 0 == len(v.bucket) {
+		if 0 == len(v.Bucket) {
 			err = errors.New("bucket is empty")
 			return
 		}
-		if 0 == len(v.prefix) {
+		if 0 == len(v.Prefix) {
 			err = errors.New("prefix is empty")
 			return
 		}
-		fops += ";bucket/" + utility.UrlSafeEncodeString(v.bucket) + "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
-		if len(v.output) > 0 {
-			fops += "/output/" + utility.UrlSafeEncodeString(v.output)
+		fops += ";bucket/" + utility.UrlSafeEncodeString(v.Bucket) + "/prefix/" + utility.UrlSafeEncodeString(v.Prefix)
+		if len(v.Output) > 0 {
+			fops += "/output/" + utility.UrlSafeEncodeString(v.Output)
 		}
 	}
 	return this.deletePrefix(fops[1:], notify_url, separate)
@@ -391,17 +391,17 @@ func (this *FileManager) DeleteM3u8(bucket string, key string, deletets int, not
 func (this *FileManager) DeleteM3u8Multiple(delete_m3u8_info []DeleteM3u8Info, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range delete_m3u8_info {
-		if 0 == len(v.bucket) {
+		if 0 == len(v.Bucket) {
 			err = errors.New("bucket is empty")
 			return
 		}
-		if 0 == len(v.key) {
+		if 0 == len(v.Key) {
 			err = errors.New("key is empty")
 			return
 		}
-		fops += ";bucket/" + utility.UrlSafeEncodeString(v.bucket) + "/key/" + utility.UrlSafeEncodeString(v.key)
-		if v.deletets == 0 || v.deletets == 1 {
-			fops += "/deletets/" + strconv.Itoa(v.deletets)
+		fops += ";bucket/" + utility.UrlSafeEncodeString(v.Bucket) + "/key/" + utility.UrlSafeEncodeString(v.Key)
+		if v.Deletets == 0 || v.Deletets == 1 {
+			fops += "/deletets/" + strconv.Itoa(v.Deletets)
 		}
 	}
 	return this.deleteM3u8(fops[1:], notify_url, separate)
@@ -443,19 +443,19 @@ func (this *FileManager) SetDeadline(bucket string, prefix string, deadline int,
 func (this *FileManager) SetDeadlineMultiple(set_deadline_info []SetDeadlineInfo, notify_url string, separate int) (response *http.Response, err error) {
 	var fops string
 	for _, v := range set_deadline_info {
-		if 0 == len(v.bucket) {
+		if 0 == len(v.Bucket) {
 			err = errors.New("bucket is empty")
 			return
 		}
-		if v.deadline < -1 {
+		if v.Deadline < -1 {
 			err = errors.New("deadline is invalid")
 			return
 		}
-		fops += ";bucket/" + utility.UrlSafeEncodeString(v.bucket)
-		if len(v.prefix) > 0 {
-			fops += "/prefix/" + utility.UrlSafeEncodeString(v.prefix)
+		fops += ";bucket/" + utility.UrlSafeEncodeString(v.Bucket)
+		if len(v.Prefix) > 0 {
+			fops += "/prefix/" + utility.UrlSafeEncodeString(v.Prefix)
 		}
-		fops += "/deadline/" + strconv.Itoa(v.deadline)
+		fops += "/deadline/" + strconv.Itoa(v.Deadline)
 	}
 	return this.setDeadline(fops[1:], notify_url, separate)
 }
