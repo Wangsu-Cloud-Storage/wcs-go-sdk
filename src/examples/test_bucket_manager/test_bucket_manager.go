@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/examples/test_common"
 	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
+	"io/ioutil"
+	"net/http"
 )
 
 func main() {
@@ -53,10 +53,14 @@ func main() {
 			fmt.Println(string(body))
 		}
 	}
-	
+
 	{
+		limit := 1000
+		mode := 0
+		startTime := ""
+		endTime := ""
 		// 列举资源
-		response, err := bm.List("bucketName", limit, "prefix", mode, "marker", "startTime", "endTime")
+		response, err := bm.List("bucketName", limit, "prefix", mode, "marker", startTime, endTime)
 		if nil != err {
 			fmt.Println("List() failed:", err)
 			return
@@ -69,6 +73,6 @@ func main() {
 			fmt.Println(string(body))
 		}
 	}
-	
+
 	// 其它文件管理功能参考：wcs-go-sdk/src/lib/core/bucket_manager.go
 }

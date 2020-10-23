@@ -93,7 +93,8 @@ func main() {
 		//Exit(-2, "Not implemented")
 		ResourceManageCopy()
 	case "ResourceManage/decompression":
-		Exit(-2, "Not implemented")
+		//Exit(-2, "Not implemented")
+		ResourceManageDecompression()
 	case "ResourceManage/setdeadline":
 		//Exit(-2, "Not implemented")
 		ResourceManageSetDeadline()
@@ -585,12 +586,14 @@ func ResourceManageList() {
 	prefix := GetArgv(9, false)
 	mode := GetArgvInt(10, false)
 	marker := GetArgv(11, false)
+	startTime := GetArgv(12, false)
+	endTime := GetArgv(13, false)
 
 	auth := utility.NewAuth(ak, sk)
 	config := core.NewConfig(use_https, upload_host, manage_host)
 
 	bm := core.NewBucketManager(auth, config, nil)
-	response, err := bm.List(bucket, limit, prefix, mode, marker)
+	response, err := bm.List(bucket, limit, prefix, mode, marker, startTime, endTime)
 	if nil != err {
 		Exit(-3, fmt.Sprintf("List() failed: %s", err))
 		return
@@ -662,6 +665,37 @@ func ResourceManageCopy() {
 	config := core.NewConfig(use_https, upload_host, manage_host)
 	bm := core.NewBucketManager(auth, config, nil)
 	response, err := bm.Copy(src, dst)
+	if nil != err {
+		Exit(-3, fmt.Sprintf("Copy() failed: %s", err))
+		return
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	Exit(response.StatusCode, string(body))
+	return
+}
+
+func ResourceManageDecompression() {
+	ak := GetArgv(2, true)
+	sk := GetArgv(3, true)
+	use_https := GetArgvBool(4, true)
+	upload_host := GetArgv(5, true)
+	manage_host := GetArgv(6, true)
+
+	bucket := GetArgv(7, true)
+	key := GetArgv(8, true)
+	format := GetArgv(9, true)
+	directory := GetArgv(10, false)
+	save_list := GetArgv(11, false)
+	notify_url := GetArgv(12, false)
+	force := GetArgvInt(13, false)
+	separate := GetArgvInt(14, false)
+
+	auth := utility.NewAuth(ak, sk)
+	config := core.NewConfig(use_https, upload_host, manage_host)
+	bm := core.NewBucketManager(auth, config, nil)
+
+	response, err := bm.Decompression(bucket, key, format, directory, save_list, notify_url, force, separate)
 	if nil != err {
 		Exit(-3, fmt.Sprintf("Copy() failed: %s", err))
 		return
