@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 )
@@ -163,9 +162,9 @@ func (this *BucketManager) Decompression(bucket string, key string, format strin
 		return
 	}
 
-	query := make(url.Values)
-	query.Add("bucket", utility.UrlSafeEncodeString(bucket))
-	query.Add("key", utility.UrlSafeEncodeString(key))
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString("bucket=" + utility.UrlSafeEncodeString(bucket))
+	queryBuilder.WriteString("&key=" + utility.UrlSafeEncodeString(key))
 	fops := "decompression/" + format
 	if len(directory) > 0 {
 		fops += "/dir/" + utility.UrlSafeEncodeString(directory)
@@ -173,17 +172,19 @@ func (this *BucketManager) Decompression(bucket string, key string, format strin
 	if len(save_list) > 0 {
 		fops += "|saveas/" + utility.UrlSafeEncodeString(save_list)
 	}
-	query.Add("fops", fops)
+	queryBuilder.WriteString("&fops=" + utility.UrlSafeEncodeString(fops))
 	if len(notify_url) > 0 {
-		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+		queryBuilder.WriteString("&notifyURL=" + utility.UrlSafeEncodeString(notify_url))
 	}
 	if 0 == force || 1 == force {
-		query.Add("force", strconv.Itoa(force))
+		queryBuilder.WriteString("&force=" + strconv.Itoa(force))
 	}
 	if 0 == separate || 1 == separate {
-		query.Add("separate", strconv.Itoa(separate))
+		queryBuilder.WriteString("&separate=" + strconv.Itoa(separate))
 	}
-	return FOps(this.auth, this.config, this.httpManager.GetClient(), query.Encode())
+
+	query := queryBuilder.String()
+	return FOps(this.auth, this.config, this.httpManager.GetClient(), query)
 }
 
 // 列举空间(list bucket)

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 	"net/http"
-	"net/url"
 	"strconv"
+	"strings"
 )
 
 type ImageOp struct {
@@ -64,18 +64,20 @@ func (this *ImageOp) ImagePersistentOp(bucket string, key string, fops string, n
 		return
 	}
 
-	query := make(url.Values)
-	query.Add("bucket", utility.UrlSafeEncodeString(bucket))
-	query.Add("key", utility.UrlSafeEncodeString(key))
-	query.Add("fops", utility.UrlSafeEncodeString(fops))
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString("bucket=" + utility.UrlSafeEncodeString(bucket))
+	queryBuilder.WriteString("&key=" + utility.UrlSafeEncodeString(key))
+	queryBuilder.WriteString("&fops=" + utility.UrlSafeEncodeString(fops))
 	if len(notify_url) > 0 {
-		query.Add("notifyURL", utility.UrlSafeEncodeString(notify_url))
+		queryBuilder.WriteString("&notifyURL=" + utility.UrlSafeEncodeString(notify_url))
 	}
 	if 0 == force || 1 == force {
-		query.Add("force", strconv.Itoa(force))
+		queryBuilder.WriteString("&force=" + strconv.Itoa(force))
 	}
 	if 0 == separate || 1 == separate {
-		query.Add("separate", strconv.Itoa(separate))
+		queryBuilder.WriteString("&separate=" + strconv.Itoa(separate))
 	}
-	return FOps(this.auth, this.config, this.httpManager.GetClient(), query.Encode())
+	query := queryBuilder.String()
+
+	return FOps(this.auth, this.config, this.httpManager.GetClient(), query)
 }
