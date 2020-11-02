@@ -33,6 +33,23 @@ func BlockCount(fsize int64) int64 {
 	return (fsize + blockMask) >> blockBits
 }
 
+type Jobs struct {
+	block_index    int64
+	pos            int64
+	chunk_size     int64
+	upload_token   string
+	key            string
+	local_filename string
+	block          []byte
+	retry_times    int
+}
+
+type Results struct {
+	block_index int64
+	status      bool
+	result      SliceUploadResult
+}
+
 func NewSliceUpload(auth *utility.Auth, config *Config, client *http.Client) (su *SliceUpload) {
 	if nil == auth {
 		panic("auth is nil")
@@ -137,6 +154,166 @@ func (this *SliceUpload) MakeFile(size int64, key string, contexts []string, upl
 		}
 	}
 	return this.httpManager.DoWithToken(request, upload_token)
+}
+
+func (this *SliceUpload) UploadFileConcurrent(local_filename string, put_policy string, key string, put_extra *PutExtra, pool_size int) (response *http.Response, err error) {
+	if 0 == len(local_filename) {
+		err = errors.New("local_filename is empty")
+		return
+	}
+	if 0 == len(put_policy) {
+		err = errors.New("put_policy is empty")
+		return
+	}
+	if pool_size < 1 {
+		err = errors.New("pool_size is invalid")
+		return
+	}
+
+	filename := key
+	if 0 == len(filename) {
+		filename = "goupload.tmp"
+	}
+
+	f, err := os.Open(local_filename)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return
+	}
+
+	var block_size int64
+	// 第一个分片不宜太大，因为可能遇到错误，上传太大是白费流量和时间！
+	var first_chunk_size int64
+
+	if fi.Size() < 1024 {
+		block_size = fi.Size()
+		first_chunk_size = fi.Size()
+	} else {
+		if fi.Size() < BlockSize {
+			block_size = fi.Size()
+		} else {
+			block_size = BlockSize
+		}
+		first_chunk_size = 1024
+	}
+
+	first_chunk := make([]byte, first_chunk_size)
+	n, err := f.Read(first_chunk)
+	if nil != err {
+		return
+	}
+	if first_chunk_size != int64(n) {
+		err = errors.New("Read size < request size")
+		return
+	}
+
+	upload_token := this.auth.CreateUploadToken(put_policy)
+	response, err = this.MakeBlock(block_size, 0, first_chunk, upload_token, key)
+	if nil != err {
+		return
+	}
+	if http.StatusOK != response.StatusCode {
+		return
+	}
+	body, _ := ioutil.ReadAll(response.Body)
+	var result SliceUploadResult
+	err = json.Unmarshal(body, &result)
+	if nil != err {
+		return
+	}
+
+	block_count := BlockCount(fi.Size())
+	contexts := make([]string, block_count)
+	contexts[0] = result.Context
+
+	// 上传第 1 个 block 剩下的数据
+	if block_size > first_chunk_size {
+		first_block_left_size := block_size - first_chunk_size
+		left_chunk := make([]byte, first_block_left_size)
+		n, err = f.Read(left_chunk)
+		if nil != err {
+			return
+		}
+		if first_block_left_size != int64(n) {
+			err = errors.New("Read size < request size")
+			return
+		}
+		response, err = this.Bput(contexts[0], first_chunk_size, left_chunk, upload_token, key)
+		if nil != err {
+			return
+		}
+		if http.StatusOK != response.StatusCode {
+			return
+		}
+		body, _ := ioutil.ReadAll(response.Body)
+		var result SliceUploadResult
+		err = json.Unmarshal(body, &result)
+		if nil != err {
+			return
+		}
+		contexts[0] = result.Context
+
+		// 上传后续 block 按配置的pool_size并发上传
+		chjobs := make(chan *Jobs, 100)
+		chresults := make(chan *Results, 10000)
+
+		// 多消费者中的一个出现异常时，将flag置为true
+		var stop_flag = false
+
+		for w := 1; w <= pool_size; w++ {
+			go worker(this, chjobs, chresults, &stop_flag)
+		}
+
+		// 每块上传任务提交到上传协程
+		for block_index := int64(1); block_index < block_count; block_index++ {
+			pos := block_size * block_index
+			left_size := fi.Size() - pos
+			var chunk_size int64
+
+			if left_size > block_size {
+				chunk_size = block_size
+			} else {
+				chunk_size = left_size
+			}
+
+			block := make([]byte, chunk_size)
+			n, err = f.Read(block)
+
+			job := &Jobs{
+				block_index:    block_index,
+				chunk_size:     chunk_size,
+				upload_token:   upload_token,
+				key:            key,
+				pos:            pos,
+				local_filename: local_filename,
+				block:          block,
+				retry_times:    3,
+			}
+			chjobs <- job
+		}
+
+		close(chjobs)
+
+		for i := int64(1); i < block_count; i++ {
+			res := <-chresults
+			var block_index = res.block_index
+			if res.status {
+				contexts[block_index] = res.result.Context
+			}
+		}
+
+		if stop_flag {
+			err = errors.New("upload chunk error")
+			return
+		}
+	}
+
+	response, err = this.MakeFile(fi.Size(), key, contexts, upload_token, put_extra)
+	return
 }
 
 func (this *SliceUpload) UploadFile(local_filename string, put_policy string, key string, put_extra *PutExtra) (response *http.Response, err error) {
@@ -271,6 +448,83 @@ func (this *SliceUpload) UploadFile(local_filename string, put_policy string, ke
 		}
 	}
 
-	response, err = this.MakeFile(fi.Size(), key, contexts, upload_token, nil)
+	response, err = this.MakeFile(fi.Size(), key, contexts, upload_token, put_extra)
 	return
+}
+
+func worker(s *SliceUpload, jobs <-chan *Jobs, results chan<- *Results, stop_flag *bool) {
+	for j := range jobs {
+		var res Results
+		if *stop_flag {
+			res.block_index = j.block_index
+			res.status = false
+			results <- &res
+			continue
+		}
+		f, err := os.Open(j.local_filename)
+		if err != nil {
+			taskBreak(f, res, j, results, stop_flag)
+			continue
+		}
+		f.Seek(j.pos, 0)
+		block := make([]byte, j.chunk_size)
+		n, err := f.Read(block)
+		if nil != err {
+			taskBreak(f, res, j, results, stop_flag)
+			continue
+		}
+		if j.chunk_size != int64(n) {
+			taskBreak(f, res, j, results, stop_flag)
+			continue
+		}
+		// 块上传重试机制
+		rt := j.retry_times
+		for {
+			response, err := s.MakeBlock(j.chunk_size, j.block_index, j.block, j.upload_token, j.key)
+			if err != nil {
+				rt--
+				if rt == 0 {
+					taskBreak(f, res, j, results, stop_flag)
+					break
+				}
+				continue
+			}
+			if http.StatusOK != response.StatusCode {
+				rt--
+				if rt == 0 {
+					taskBreak(f, res, j, results, stop_flag)
+					break
+				}
+				continue
+			}
+			body, _ := ioutil.ReadAll(response.Body)
+			var result SliceUploadResult
+			err = json.Unmarshal(body, &result)
+			if err != nil {
+				rt--
+				if rt == 0 {
+					taskBreak(f, res, j, results, stop_flag)
+					break
+				}
+				continue
+			}
+			res.block_index = j.block_index
+			res.result = result
+			res.status = true
+			results <- &res
+			f.Close()
+			break
+		}
+	}
+}
+
+/**
+程序异常退出时关闭资源
+*/
+func taskBreak(f *os.File, res Results, j *Jobs, results chan<- *Results, stop_flag *bool) {
+	f.Close()
+	res.block_index = j.block_index
+	res.status = false
+	results <- &res
+	*stop_flag = true
 }

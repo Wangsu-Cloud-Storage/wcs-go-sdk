@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -225,6 +226,12 @@ func SliceUpload() {
 	days_remain_to_delete := GetArgvInt(9, true)
 	localfilename := GetArgv(10, true)
 
+	pool_size_str := GetArgv(11, false)
+	pool_size := int(1)
+	if pool_size_str != "" {
+		pool_size, _ = strconv.Atoi(pool_size_str)
+	}
+
 	auth := utility.NewAuth(ak, sk)
 	config := core.NewConfig(use_https, upload_host, manage_host)
 	su := core.NewSliceUpload(auth, config, nil)
@@ -232,7 +239,15 @@ func SliceUpload() {
 
 	deadline := time.Now().Add(time.Second*3600).Unix() * 1000
 	put_policy := "{\"scope\": \"" + bucket + "\",\"deadline\": \"" + strconv.FormatInt(deadline, 10) + "\"}"
-	response, err := su.UploadFile(localfilename, put_policy, key, put_extra)
+
+	var response *http.Response
+	var err error
+	if pool_size == 1 {
+		response, err = su.UploadFile(localfilename, put_policy, key, put_extra)
+	} else {
+		response, err = su.UploadFileConcurrent(localfilename, put_policy, key, put_extra, pool_size)
+	}
+
 	if nil != err {
 		Exit(-3, fmt.Sprintf("UploadFile() failed: %s", err))
 		return
