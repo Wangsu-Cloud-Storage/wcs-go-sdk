@@ -232,6 +232,12 @@ func SliceUpload() {
 		pool_size, _ = strconv.Atoi(pool_size_str)
 	}
 
+	block_size_str := GetArgv(12, false)
+	var block_size int
+	if block_size_str != "" {
+		block_size, _ = strconv.Atoi(block_size_str)
+	}
+
 	auth := utility.NewAuth(ak, sk)
 	config := core.NewConfig(use_https, upload_host, manage_host)
 	su := core.NewSliceUpload(auth, config, nil)
@@ -242,10 +248,14 @@ func SliceUpload() {
 
 	var response *http.Response
 	var err error
-	if pool_size == 1 {
-		response, err = su.UploadFile(localfilename, put_policy, key, put_extra)
+	if block_size_str != "" {
+		response, err = su.UploadFileWithBlockSize(localfilename, put_policy, key, put_extra, block_size)
 	} else {
-		response, err = su.UploadFileConcurrent(localfilename, put_policy, key, put_extra, pool_size)
+		if pool_size == 1 {
+			response, err = su.UploadFile(localfilename, put_policy, key, put_extra)
+		} else {
+			response, err = su.UploadFileConcurrent(localfilename, put_policy, key, put_extra, pool_size)
+		}
 	}
 
 	if nil != err {

@@ -61,10 +61,6 @@ func NewSliceUpload(auth *utility.Auth, config *Config, client *http.Client) (su
 }
 
 func (this *SliceUpload) MakeBlock(block_size int64, block_order int64, chunk []byte, upload_token string, key string) (response *http.Response, err error) {
-	if block_size < 0 || BlockSize < block_size {
-		err = errors.New("block_size is invalid")
-		return
-	}
 	if 0 == len(upload_token) {
 		err = errors.New("upload_token is empty")
 		return
@@ -299,6 +295,151 @@ func (this *SliceUpload) UploadFileConcurrent(local_filename string, put_policy 
 		close(chjobs)
 
 		for i := int64(1); i < block_count; i++ {
+			res := <-chresults
+			var block_index = res.block_index
+			if res.status {
+				contexts[block_index] = res.result.Context
+			}
+		}
+
+		if stop_flag {
+			err = errors.New("upload chunk error")
+			return
+		}
+	}
+
+	response, err = this.MakeFile(fi.Size(), key, contexts, upload_token, put_extra)
+	return
+}
+
+func (this *SliceUpload) UploadFileWithBlockSize(local_filename string, put_policy string, key string, put_extra *PutExtra, block_size int) (response *http.Response, err error) {
+	return this.SliceUploadFileBase(local_filename, put_policy, key, put_extra, block_size, 1)
+}
+
+/**
+block_size 分块大小,单位为MB,必须为4的倍数
+pool_size 块并发限制数,并发上传块的数量
+*/
+func (this *SliceUpload) SliceUploadFileBase(local_filename string, put_policy string, key string, put_extra *PutExtra, block_size int, pool_size int) (response *http.Response, err error) {
+	if 0 == len(local_filename) {
+		err = errors.New("local_filename is empty")
+		return
+	}
+	if 0 == len(put_policy) {
+		err = errors.New("put_policy is empty")
+		return
+	}
+	// 输入块大小参数的单位为MB,必须为4的倍数
+	if block_size <= 0 || block_size%4 != 0 {
+		err = errors.New("block_size is invalid")
+		return
+	}
+	var block_size_b int64 // 分块大小，单位为B
+	block_size_b = int64(block_size * 1024 * 1024)
+
+	filename := key
+	if 0 == len(filename) {
+		err = errors.New("key is empty")
+		return
+	}
+
+	f, err := os.Open(local_filename)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return
+	}
+
+	if fi.Size() < block_size_b {
+		block_size_b = fi.Size()
+	}
+
+	upload_token := this.auth.CreateUploadToken(put_policy)
+
+	block_count := BlockCount(fi.Size())
+	contexts := make([]string, block_count)
+
+	if pool_size <= 1 {
+		// 串行 上传block
+		var result SliceUploadResult
+		for block_index := int64(0); block_index < block_count; block_index++ {
+			pos := block_size_b * block_index
+			left_size := fi.Size() - pos
+			var chunk_size int64
+			if left_size > block_size_b {
+				chunk_size = block_size_b
+			} else {
+				chunk_size = left_size
+			}
+			block := make([]byte, chunk_size)
+			var n, err1 = f.Read(block)
+			if nil != err1 {
+				return
+			}
+			if chunk_size != int64(n) {
+				err = errors.New("Read size < request size")
+				return
+			}
+			response, err = this.MakeBlock(chunk_size, block_index, block, upload_token, key)
+			if nil != err {
+				return
+			}
+			if http.StatusOK != response.StatusCode {
+				return
+			}
+			body, _ := ioutil.ReadAll(response.Body)
+			err = json.Unmarshal(body, &result)
+			if nil != err {
+				return
+			}
+
+			contexts[block_index] = result.Context
+		}
+	} else {
+		// 块并发上传
+		// 上传 block 按配置的pool_size并发上传
+		chjobs := make(chan *Jobs, 100)
+		chresults := make(chan *Results, 10000)
+
+		// 多消费者中的一个出现异常时，将flag置为true
+		var stop_flag = false
+
+		for w := 1; w <= pool_size; w++ {
+			go worker(this, chjobs, chresults, &stop_flag)
+		}
+
+		// 每块上传任务提交到上传协程
+		for block_index := int64(0); block_index < block_count; block_index++ {
+			pos := block_size_b * block_index
+			left_size := fi.Size() - pos
+			var chunk_size int64
+
+			if left_size > block_size_b {
+				chunk_size = block_size_b
+			} else {
+				chunk_size = left_size
+			}
+
+			block := make([]byte, chunk_size)
+
+			job := &Jobs{
+				block_index:    block_index,
+				chunk_size:     chunk_size,
+				upload_token:   upload_token,
+				key:            key,
+				pos:            pos,
+				local_filename: local_filename,
+				block:          block,
+				retry_times:    3,
+			}
+			chjobs <- job
+		}
+		close(chjobs)
+
+		for i := int64(0); i < block_count; i++ {
 			res := <-chresults
 			var block_index = res.block_index
 			if res.status {
