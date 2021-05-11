@@ -40,7 +40,6 @@ type Jobs struct {
 	upload_token   string
 	key            string
 	local_filename string
-	block          []byte
 	retry_times    int
 }
 
@@ -265,42 +264,42 @@ func (this *SliceUpload) UploadFileConcurrent(local_filename string, put_policy 
 		}
 
 		// 每块上传任务提交到上传协程
-		for block_index := int64(1); block_index < block_count; block_index++ {
-			pos := block_size * block_index
-			left_size := fi.Size() - pos
-			var chunk_size int64
+		go func() {
+			for block_index := int64(1); block_index < block_count; block_index++ {
+				pos := block_size * block_index
+				left_size := fi.Size() - pos
+				var chunk_size int64
 
-			if left_size > block_size {
-				chunk_size = block_size
-			} else {
-				chunk_size = left_size
+				if left_size > block_size {
+					chunk_size = block_size
+				} else {
+					chunk_size = left_size
+				}
+
+				job := &Jobs{
+					block_index:    block_index,
+					chunk_size:     chunk_size,
+					upload_token:   upload_token,
+					key:            key,
+					pos:            pos,
+					local_filename: local_filename,
+					retry_times:    3,
+				}
+				chjobs <- job
 			}
-
-			block := make([]byte, chunk_size)
-			n, err = f.Read(block)
-
-			job := &Jobs{
-				block_index:    block_index,
-				chunk_size:     chunk_size,
-				upload_token:   upload_token,
-				key:            key,
-				pos:            pos,
-				local_filename: local_filename,
-				block:          block,
-				retry_times:    3,
-			}
-			chjobs <- job
-		}
-
-		close(chjobs)
+			close(chjobs)
+		}()
 
 		for i := int64(1); i < block_count; i++ {
 			res := <-chresults
 			var block_index = res.block_index
 			if res.status {
 				contexts[block_index] = res.result.Context
+			} else {
+				stop_flag = true
 			}
 		}
+		close(chresults)
 
 		if stop_flag {
 			err = errors.New("upload chunk error")
@@ -411,41 +410,43 @@ func (this *SliceUpload) SliceUploadFileBase(local_filename string, put_policy s
 			go worker(this, chjobs, chresults, &stop_flag)
 		}
 
-		// 每块上传任务提交到上传协程
-		for block_index := int64(0); block_index < block_count; block_index++ {
-			pos := block_size_b * block_index
-			left_size := fi.Size() - pos
-			var chunk_size int64
+		go func() {
+			// 每块上传任务提交到上传协程
+			for block_index := int64(0); block_index < block_count; block_index++ {
+				pos := block_size_b * block_index
+				left_size := fi.Size() - pos
+				var chunk_size int64
 
-			if left_size > block_size_b {
-				chunk_size = block_size_b
-			} else {
-				chunk_size = left_size
+				if left_size > block_size_b {
+					chunk_size = block_size_b
+				} else {
+					chunk_size = left_size
+				}
+
+				job := &Jobs{
+					block_index:    block_index,
+					chunk_size:     chunk_size,
+					upload_token:   upload_token,
+					key:            key,
+					pos:            pos,
+					local_filename: local_filename,
+					retry_times:    3,
+				}
+				chjobs <- job
 			}
-
-			block := make([]byte, chunk_size)
-
-			job := &Jobs{
-				block_index:    block_index,
-				chunk_size:     chunk_size,
-				upload_token:   upload_token,
-				key:            key,
-				pos:            pos,
-				local_filename: local_filename,
-				block:          block,
-				retry_times:    3,
-			}
-			chjobs <- job
-		}
-		close(chjobs)
+			close(chjobs)
+		}()
 
 		for i := int64(0); i < block_count; i++ {
 			res := <-chresults
 			var block_index = res.block_index
 			if res.status {
 				contexts[block_index] = res.result.Context
+			} else {
+				stop_flag = true
 			}
 		}
+		close(chresults)
 
 		if stop_flag {
 			err = errors.New("upload chunk error")
@@ -621,7 +622,7 @@ func worker(s *SliceUpload, jobs <-chan *Jobs, results chan<- *Results, stop_fla
 		// 块上传重试机制
 		rt := j.retry_times
 		for {
-			response, err := s.MakeBlock(j.chunk_size, j.block_index, j.block, j.upload_token, j.key)
+			response, err := s.MakeBlock(j.chunk_size, j.block_index, block, j.upload_token, j.key)
 			if err != nil {
 				rt--
 				if rt == 0 {
