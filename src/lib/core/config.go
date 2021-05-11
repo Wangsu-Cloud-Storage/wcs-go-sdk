@@ -43,7 +43,7 @@ func (config *Config) GetUploadUrlPrefix() (url_prefix string) {
 }
 
 const (
-	VERSION        = "1.0.0.2"
+	VERSION        = "1.0.0.3"
 	BLOCK_SIZE int = 4 * 1024 * 1024
 )
 
