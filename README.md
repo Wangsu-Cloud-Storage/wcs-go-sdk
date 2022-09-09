@@ -21,6 +21,7 @@ package main
 import (
     "fmt"
     "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/core"
+    "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
     "io/ioutil"
     "net/http"
     "strconv"
