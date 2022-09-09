@@ -36,6 +36,23 @@ func main() {
  ```
 
 ## 使用
+### 计算上传凭证
+```
+package main
+
+import (
+    "fmt"
+    "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
+)
+func main() {
+    // 按照实际需要组装put_policy
+	put_policy := "{\"scope\":\"aaa\",\"deadline\":\"1893427200000\"}"
+    
+    auth := utility.NewAuth("aaasdfasf", "bbbsdfdsfdsafsdf")
+	fmt.Printf(auth.CreateUploadToken(put_policy))
+}
+```
+
 ### 简单上传
 单次请求直接上传完整的文件，若文件大小超过2G，必须使用分片上传。
 
@@ -396,6 +413,20 @@ func main() {
         fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
+}
+```
+
+### 计算本地文件Etag
+```
+package main
+
+import (
+    "fmt"
+    "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
+)
+func main() {
+    etag := utility.ComputeEtag([]byte(data))
+	fmt.Println("ETag =", etag)
 }
 ```
 更多实例参考：src/examples/test_wcslib/test_wcslib.go
