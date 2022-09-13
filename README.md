@@ -28,7 +28,10 @@ import (
     "time"
 )
 func main() {
+    // 配置鉴权AK、SK
     auth := utility.NewAuth("<AccessKey>", "<SecretKey>")
+    
+    // 配置是否使用https，上传域名和管理域名（注：配置域名不需要在添加http://前缀）
     config := core.NewConfig(false, "<UploadHost>", "<ManageHost>")
     
     // 执行操作
