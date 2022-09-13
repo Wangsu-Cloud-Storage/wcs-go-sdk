@@ -173,7 +173,7 @@ func main() {
     bm := core.NewBucketManager(auth, config, nil)
     response, err := bm.Delete("bucket", "key")
     if nil != err {
-        Exit(-3, fmt.Sprintf("Delete() failed: %s", err))
+        fmt.Sprintf("Delete() failed: %s", err)
         return
     }
 
