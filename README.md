@@ -127,7 +127,7 @@ func main() {
     deadline := time.Now().Add(time.Second*3600).Unix() * 1000
     put_policy := "{\"scope\": \"" + bucket + "\",\"deadline\": \"" + strconv.FormatInt(deadline, 10) + "\"}"
 
-    // 指定块大小的方式上传，块最小为4M，并且要为4M的整数倍
+    // 指定块大小的方式上传，块大小单位为MB，并且要为4的整数倍
     response, err = su.UploadFileWithBlockSize("localfilename", put_policy, key, put_extra, block_size)
 
     // 指定并发数的方式上传
