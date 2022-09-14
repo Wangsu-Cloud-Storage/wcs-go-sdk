@@ -296,8 +296,8 @@ func main() {
 
     // 列举的起始位置，可用上次列举返回的位置标记，作为本次列举的起点信息 
     marker ：= "marker"
-    // 列举资源
-    response, err := bm.List("bucketName", limit, prefix, mode, marker)
+    // 列举资源，注：末尾两个参数已废弃，使用""填充
+    response, err := bm.List("bucketName", limit, prefix, mode, marker, "", "")
     if nil != err {
         fmt.Println("List() failed:", err)
         return
