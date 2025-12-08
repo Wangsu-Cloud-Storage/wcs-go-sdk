@@ -1,5 +1,9 @@
 # Go SDK 使用指南
 
+## 语言 / Language
+- [简体中文](README.md)
+- [English](README.en.md)
+
 ## 功能说明
 wcs-go-sdk 是较为原始的封装，lib 部分没有引入 JSON 库，如果操作返回的结果是 JSON 字符串，您需要自己选择一个 JSON 库，比如 golang 自带的 json，并按照文档去正确解读。
 
