@@ -94,7 +94,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -147,7 +147,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -185,7 +185,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -222,7 +222,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -260,7 +260,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -310,7 +310,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -347,7 +347,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -383,7 +383,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -419,7 +419,7 @@ func main() {
     if http.StatusOK == response.StatusCode {
         fmt.Println(string(body))
     } else {
-        fmt.Println("Failed, StatusCode =")
+        fmt.Println("Failed, StatusCode =", response.StatusCode)
         fmt.Println(string(body))
     }
 }
@@ -434,8 +434,9 @@ import (
     "github.com/Wangsu-Cloud-Storage/wcs-go-sdk/src/lib/utility"
 )
 func main() {
-    etag := utility.ComputeEtag([]byte(data))
-    fmt.Println("ETag =")
+    data := []byte("test data")
+    etag := utility.ComputeEtag(data)
+    fmt.Println("ETag =", etag)
 }
 ```
 For more examples, please refer to: src/examples/test_wcslib/test_wcslib.go
